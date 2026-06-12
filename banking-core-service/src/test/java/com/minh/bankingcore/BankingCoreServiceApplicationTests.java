@@ -1,8 +1,13 @@
 package com.minh.bankingcore;
 
 import com.minh.bankingcore.account.AccountRepository;
+import com.minh.bankingcore.audit.AuditLogRepository;
+import com.minh.bankingcore.idempotency.IdempotencyService;
 import com.minh.bankingcore.kafka.TransactionEventProducer;
 import com.minh.bankingcore.ledger.LedgerEntryRepository;
+import com.minh.bankingcore.outbox.OutboxEventFactory;
+import com.minh.bankingcore.outbox.OutboxEventRepository;
+import com.minh.bankingcore.summary.DailyTransactionSummaryRepository;
 import com.minh.bankingcore.transaction.TransactionReferenceGenerator;
 import com.minh.bankingcore.transaction.TransactionRepository;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,21 @@ class BankingCoreServiceApplicationTests {
 
     @MockitoBean
     private TransactionEventProducer transactionEventProducer;
+
+    @MockitoBean
+    private OutboxEventRepository outboxEventRepository;
+
+    @MockitoBean
+    private OutboxEventFactory outboxEventFactory;
+
+    @MockitoBean
+    private IdempotencyService idempotencyService;
+
+    @MockitoBean
+    private AuditLogRepository auditLogRepository;
+
+    @MockitoBean
+    private DailyTransactionSummaryRepository dailyTransactionSummaryRepository;
 
     @Test
     void contextLoads() {

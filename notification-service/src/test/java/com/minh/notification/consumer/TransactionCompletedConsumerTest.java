@@ -68,7 +68,7 @@ class TransactionCompletedConsumerTest {
 	private TransactionCompletedEvent sampleEvent(String eventId, String referenceNo, BigDecimal amount) {
 		return new TransactionCompletedEvent(
 				eventId,
-				"TRANSACTION_COMPLETED",
+				TransactionCompletedEvent.EVENT_TYPE,
 				referenceNo,
 				"100001",
 				"100002",

@@ -38,9 +38,11 @@ Success response:
 - PostgreSQL: `jdbc:postgresql://localhost:5432/banking`
 - Kafka bootstrap servers: `localhost:9092`
 - Kafka topic config: `app.kafka.topics.transaction-completed=transaction.completed`
+- EOD summary cron: `app.eod.transaction-summary.cron=0 5 0 * * *`
 
 ## Notes
 
 - The transfer feature builds on the existing account API and Flyway baseline in this module.
 - The transfer flow publishes `TransactionCompletedEvent` after the database transaction commits.
 - Kafka topic config comes from `app.kafka.topics.transaction-completed`.
+- The module includes a daily transaction summary batch that summarizes transfer rows for the prior day into `daily_transaction_summary`.

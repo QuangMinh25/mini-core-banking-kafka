@@ -62,4 +62,36 @@ public class LedgerEntryEntity {
 		this.description = description;
 		this.createdAt = createdAt;
 	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getTransactionReferenceNo() {
+		return transactionReferenceNo;
+	}
+
+	public String getAccountNo() {
+		return accountNo;
+	}
+
+	public LedgerEntryType getEntryType() {
+		return entryType;
+	}
+
+	public BigDecimal getAmount() {
+		return amount;
+	}
+
+	public BigDecimal getBalanceAfter() {
+		return balanceAfter;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public OffsetDateTime getCreatedAt() {
+		return createdAt;
+	}
 }

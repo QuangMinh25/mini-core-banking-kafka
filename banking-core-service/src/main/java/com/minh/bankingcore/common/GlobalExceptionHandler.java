@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -47,6 +48,13 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, "Request body is invalid"));
     }
 
+    @ExceptionHandler(ServletRequestBindingException.class)
+    public ResponseEntity<ErrorResponse> handleServletRequestBinding(ServletRequestBindingException exception) {
+        return ResponseEntity
+                .status(ErrorCode.VALIDATION_ERROR.getHttpStatus())
+                .body(ErrorResponse.of(ErrorCode.VALIDATION_ERROR, exception.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedException(Exception exception) {
         return ResponseEntity
@@ -61,8 +69,6 @@ public class GlobalExceptionHandler {
 
         return switch (fieldError.getField()) {
             case "amount", "balance" -> ErrorCode.INVALID_AMOUNT;
-            case "fromAccountNo", "toAccountNo" -> ErrorCode.ACCOUNT_NOT_FOUND;
-            case "currency" -> ErrorCode.CURRENCY_MISMATCH;
             default -> ErrorCode.VALIDATION_ERROR;
         };
     }

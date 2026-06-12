@@ -17,6 +17,6 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
 	Optional<AccountEntity> findByAccountNo(String accountNo);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("select a from AccountEntity a where a.accountNo in :accountNos")
+	@Query("select a from AccountEntity a where a.accountNo in :accountNos order by a.accountNo asc")
 	List<AccountEntity> findAllByAccountNoInForUpdate(@Param("accountNos") Collection<String> accountNos);
 }

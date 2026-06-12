@@ -23,7 +23,12 @@ public class TransactionCompletedConsumer {
 	public void consume(TransactionCompletedEvent event,
 			@Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
 		if (event == null || event.eventId() == null || event.referenceNo() == null || event.amount() == null) {
-			log.warn("Ignoring invalid transaction.completed event with missing required fields");
+			log.warn(
+					"Ignoring invalid transaction.completed event: topic={}, eventId={}, referenceNo={}",
+					topic,
+					event != null ? event.eventId() : null,
+					event != null ? event.referenceNo() : null
+			);
 			return;
 		}
 

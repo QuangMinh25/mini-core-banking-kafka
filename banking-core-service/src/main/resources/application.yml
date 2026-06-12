@@ -28,9 +28,16 @@ spring:
       acks: all
       retries: 3
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 app:
+  eod:
+    transaction-summary:
+      cron: "0 5 0 * * *"
+  outbox:
+    publisher:
+      fixed-delay-ms: 5000
+      retry-limit: 5
   kafka:
     topics:
       transaction-completed: transaction.completed

@@ -10,7 +10,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -72,6 +74,32 @@ class AccountControllerTest {
     }
 
     @Test
+    void listAccountsReturnsWrappedSuccessResponse() throws Exception {
+        com.minh.bankingcore.common.PageResponse<AccountResponse> response = new com.minh.bankingcore.common.PageResponse<>(
+                List.of(new AccountResponse(
+                        "100001",
+                        "Nguyen Van A",
+                        new BigDecimal("1000000.00"),
+                        "VND",
+                        AccountStatus.ACTIVE,
+                        OffsetDateTime.parse("2026-06-11T23:00:00+07:00"),
+                        OffsetDateTime.parse("2026-06-11T23:00:00+07:00")
+                )),
+                0,
+                20,
+                1,
+                1
+        );
+        Mockito.when(accountService.listAccounts(0, 20)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/accounts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.items[0].accountNo").value("100001"))
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+    }
+
+    @Test
     void createAccountReturnsValidationErrorForMalformedJson() throws Exception {
         mockMvc.perform(post("/api/v1/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -80,5 +108,49 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value("Request body is invalid"));
+    }
+
+    @Test
+    void getStatementReturnsWrappedSuccessResponse() throws Exception {
+        AccountStatementResponse response = new AccountStatementResponse(
+                List.of(new AccountStatementEntryResponse(
+                        "TXN202606112230001",
+                        "100001",
+                        com.minh.bankingcore.ledger.LedgerEntryType.DEBIT,
+                        new BigDecimal("100000.00"),
+                        new BigDecimal("900000.00"),
+                        "Transfer to 100002",
+                        OffsetDateTime.parse("2026-06-11T22:30:01+07:00")
+                )),
+                0,
+                20,
+                1,
+                1
+        );
+
+        Mockito.when(accountService.getStatement("100001", LocalDate.parse("2026-06-01"), LocalDate.parse("2026-06-12"), 0, 20))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/accounts/100001/statement")
+                        .param("fromDate", "2026-06-01")
+                        .param("toDate", "2026-06-12"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.entries[0].transactionReferenceNo").value("TXN202606112230001"))
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+    }
+
+    @Test
+    void getStatementReturnsValidationErrorForInvalidDateRange() throws Exception {
+        Mockito.when(accountService.getStatement("100001", LocalDate.parse("2026-06-12"), LocalDate.parse("2026-06-01"), 0, 20))
+                .thenThrow(new BusinessException(ErrorCode.VALIDATION_ERROR, "fromDate must be on or before toDate"));
+
+        mockMvc.perform(get("/api/v1/accounts/100001/statement")
+                        .param("fromDate", "2026-06-12")
+                        .param("toDate", "2026-06-01"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("fromDate must be on or before toDate"));
     }
 }

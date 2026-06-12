@@ -13,4 +13,5 @@ public record TransactionCompletedEvent(
 		String currency,
 		LocalDateTime occurredAt
 ) {
+	public static final String EVENT_TYPE = "TRANSACTION_COMPLETED";
 }

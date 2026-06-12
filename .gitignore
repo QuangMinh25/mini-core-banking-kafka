@@ -1,0 +1,4 @@
+banking-ui/node_modules/
+banking-ui/dist/
+banking-ui/.idea/
+banking-ui/package-lock.json

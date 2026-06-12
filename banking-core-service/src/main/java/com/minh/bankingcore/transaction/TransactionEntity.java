@@ -73,6 +73,10 @@ public class TransactionEntity {
 		return referenceNo;
 	}
 
+	public TransactionType getType() {
+		return type;
+	}
+
 	public TransactionStatus getStatus() {
 		return status;
 	}

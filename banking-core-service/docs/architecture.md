@@ -48,6 +48,7 @@ This infrastructure is used directly by the checked-in account and transfer feat
 - Build and test: Gradle wrapper
 - Database access model: PostgreSQL via JPA/Flyway with account, transaction, and ledger tables
 - Messaging model: Kafka producer publishes `TransactionCompletedEvent` after the transfer transaction commits
+- Batch model: scheduled EOD summary job aggregates prior-day transfer totals into `daily_transaction_summary`
 - Security model: no Spring Security configuration found in source
 
 ## High-Risk Areas

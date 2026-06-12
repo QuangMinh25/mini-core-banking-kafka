@@ -2,22 +2,43 @@
 
 ## Confirmed Runtime Surface
 
-No custom HTTP controller, REST endpoint, Kafka listener, or message publisher classes were found in checked-in source during setup.
+The service now exposes simple read/query APIs for local UI inspection:
+
+- `GET /api/v1/notifications`
+- `GET /api/v1/notifications/events/{eventId}`
+- `GET /api/v1/processed-events`
+- `GET /api/v1/processed-events/{eventId}`
+- `GET /api/v1/notification-service/health`
 
 ## Confirmed Application Facts
 
 - Spring Boot application name: `notification-service`
 - Spring Web MVC dependency is present
 - Spring Actuator dependency is present
+- Notification logs are persisted in `notification_logs`
+- Duplicate-event tracking is persisted in `processed_events`
+
+## Response Shape
+
+Application endpoints return a small wrapper:
+
+- `success`: boolean
+- `data`: payload
+- `message`: error message when applicable
+
+List endpoints return paginated `data` with:
+
+- `content`
+- `page`
+- `size`
+- `totalElements`
+- `totalPages`
 
 ## Unknown / Needs Confirmation
 
-- Custom REST endpoints
-- Request and response models
 - Validation rules beyond framework defaults
 - Authentication and authorization requirements
-- Kafka topics, payload contracts, and event schemas
-- Error response format
+- Broader Kafka topic expansion beyond `transaction.completed`
 - Versioning strategy
 - Notification-delivery interfaces
 
