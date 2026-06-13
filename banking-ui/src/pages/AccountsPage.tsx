@@ -9,7 +9,7 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { demoAccounts } from '../data/demoData';
 import type { AccountResponse, CreateAccountRequest } from '../types/account';
-import { formatCurrency, formatDateTime, getErrorMessage } from '../utils/format';
+import { formatCurrency, formatDateTime, toDebugValue } from '../utils/format';
 
 const initialCreateForm: CreateAccountRequest = {
   accountNo: '',
@@ -36,7 +36,7 @@ export function AccountsPage() {
   const [account, setAccount] = useState<AccountResponse | null>(null);
   const [rawJson, setRawJson] = useState<unknown>({ note: 'Account responses will appear here.' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
 
   async function handleCreateAccount(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,8 +48,8 @@ export function AccountsPage() {
       setAccount(response.data);
       setRawJson(response);
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-      setRawJson(requestError);
+      setError(requestError);
+      setRawJson(toDebugValue(requestError));
     } finally {
       setLoading(false);
     }
@@ -65,8 +65,8 @@ export function AccountsPage() {
       setAccount(response.data);
       setRawJson(response);
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-      setRawJson(requestError);
+      setError(requestError);
+      setRawJson(toDebugValue(requestError));
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export function AccountsPage() {
         actions={<StatusBadge status="Live API preferred" tone="success" subtle />}
       />
 
-      {error ? <ErrorAlert message={error} /> : null}
+      {error ? <ErrorAlert error={error} /> : null}
       {loading ? <LoadingState label="Waiting for account API..." /> : null}
 
       <div className="two-column-grid">

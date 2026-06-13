@@ -9,7 +9,7 @@ import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { demoStatement } from '../data/demoData';
 import type { LedgerEntry, StatementQuery, StatementResponse } from '../types/ledger';
-import { formatCurrency, formatDateTime, getErrorMessage } from '../utils/format';
+import { formatCurrency, formatDateTime, toDebugValue } from '../utils/format';
 
 const initialQuery: StatementQuery = {
   accountNo: '',
@@ -39,7 +39,7 @@ export function StatementPage() {
   const [statement, setStatement] = useState<StatementResponse | null>(null);
   const [rawJson, setRawJson] = useState<unknown>({ note: 'Statement result will appear here.' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,8 +51,8 @@ export function StatementPage() {
       setStatement(response.data);
       setRawJson(response);
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-      setRawJson(requestError);
+      setError(requestError);
+      setRawJson(toDebugValue(requestError));
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export function StatementPage() {
         actions={<StatusBadge status="Ledger view" tone="info" subtle />}
       />
 
-      {error ? <ErrorAlert message={error} /> : null}
+      {error ? <ErrorAlert error={error} /> : null}
       {loading ? <LoadingState label="Loading statement..." /> : null}
 
       <FormSection

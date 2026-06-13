@@ -1,12 +1,9 @@
-import type { UnsupportedApiResult } from '../types/common';
+import type { ApiResponse, NotificationPageResponse } from '../types/common';
+import type { ProcessedEvent } from '../types/processedEvent';
+import { requestJson } from './httpClient';
 
-export async function getProcessedEvents(): Promise<UnsupportedApiResult> {
-  return {
-    supported: false,
-    resource: 'Processed events',
-    service: 'notification-service',
-    reason:
-      'The repo proves duplicate protection at the database and consumer layer, but there is no checked-in HTTP controller for processed event inspection.',
-    suggestedEndpoint: 'GET /api/v1/processed-events',
-  };
+export function getProcessedEvents(page = 0, size = 20) {
+  return requestJson<ApiResponse<NotificationPageResponse<ProcessedEvent>>>(
+    `/api/v1/processed-events?page=${page}&size=${size}`,
+  );
 }

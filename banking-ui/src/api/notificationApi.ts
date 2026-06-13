@@ -1,12 +1,9 @@
-import type { UnsupportedApiResult } from '../types/common';
+import type { ApiResponse, NotificationPageResponse } from '../types/common';
+import type { NotificationLog } from '../types/notification';
+import { requestJson } from './httpClient';
 
-export async function getNotificationLogs(): Promise<UnsupportedApiResult> {
-  return {
-    supported: false,
-    resource: 'Notification logs',
-    service: 'notification-service',
-    reason:
-      'The notification service has Kafka consumers and JPA entities, but no checked-in HTTP controller exposes notification log records.',
-    suggestedEndpoint: 'GET /api/v1/notifications',
-  };
+export function getNotificationLogs(page = 0, size = 20) {
+  return requestJson<ApiResponse<NotificationPageResponse<NotificationLog>>>(
+    `/api/v1/notifications?page=${page}&size=${size}`,
+  );
 }

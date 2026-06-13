@@ -7,9 +7,8 @@ import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import { StatusBadge } from '../components/StatusBadge';
 import { demoNotifications } from '../data/demoData';
-import type { UnsupportedApiResult } from '../types/common';
 import type { NotificationLog } from '../types/notification';
-import { formatCurrency, formatDateTime } from '../utils/format';
+import { formatCurrency, formatDateTime, getErrorMessage, toDebugValue } from '../utils/format';
 
 const columns: TableColumn<NotificationLog>[] = [
   { key: 'eventId', header: 'Event ID', render: (row) => row.eventId },
@@ -27,17 +26,37 @@ const columns: TableColumn<NotificationLog>[] = [
 ];
 
 export function NotificationsPage() {
-  const [result, setResult] = useState<UnsupportedApiResult | null>(null);
+  const [rows, setRows] = useState<NotificationLog[]>(demoNotifications);
+  const [isLive, setIsLive] = useState(false);
+  const [note, setNote] = useState('Static demo rows show the type of consumer-side visibility the dashboard expects.');
+  const [rawJson, setRawJson] = useState<unknown>({ note: 'Notification responses will appear here.' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
-      const response = await getNotificationLogs();
-      if (mounted) {
-        setResult(response);
-        setLoading(false);
+      try {
+        const response = await getNotificationLogs();
+        if (mounted) {
+          setRows(response.data.content);
+          setIsLive(true);
+          setNote(
+            `Live gateway response | Page ${response.data.page + 1} of ${Math.max(response.data.totalPages, 1)} | ${response.data.totalElements} total rows`,
+          );
+          setRawJson(response);
+        }
+      } catch (requestError) {
+        if (mounted) {
+          setRows(demoNotifications);
+          setIsLive(false);
+          setNote(`Static demo fallback active because ${getErrorMessage(requestError)}.`);
+          setRawJson(toDebugValue(requestError));
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -53,31 +72,33 @@ export function NotificationsPage() {
         title="Notifications"
         description="Consumer-side visibility for the records created after Kafka events are handled."
         helper="When a transfer event is consumed successfully, notification logs should explain what message was created and when."
-        actions={<StatusBadge status="Static demo fallback" tone="info" subtle />}
+        actions={<StatusBadge status={isLive ? 'Gateway live' : 'Static demo fallback'} tone={isLive ? 'success' : 'info'} subtle />}
       />
       {loading ? <LoadingState label="Checking notification API availability..." /> : null}
-      {result ? (
+      {!loading ? (
         <>
           <DataTable
             caption="Notification logs table"
             title="Notification log stream"
-            description="Static demo rows show the type of consumer-side visibility the dashboard expects."
+            description={note}
             columns={columns}
-            rows={demoNotifications}
+            rows={rows}
             emptyMessage="No notification logs to show."
-            actions={<StatusBadge status="Static demo" tone="info" subtle />}
+            actions={<StatusBadge status={isLive ? 'Live response' : 'Static demo'} tone={isLive ? 'success' : 'info'} subtle />}
           />
-          <section className="note-banner card">
-            <div className="note-banner__icon">
-              <BellRing size={18} />
-            </div>
-            <div>
-              <strong>Live endpoint not available</strong>
-              <p>{result.reason}</p>
-              <small>Suggested backend endpoint: {result.suggestedEndpoint}</small>
-            </div>
-          </section>
-          <JsonViewer value={result} />
+          {!isLive ? (
+            <section className="note-banner card">
+              <div className="note-banner__icon">
+                <BellRing size={18} />
+              </div>
+              <div>
+                <strong>Static fallback active</strong>
+                <p>The gateway route for `GET /api/v1/notifications` was unavailable, so the page kept demo rows instead of crashing.</p>
+                <small>Start `notification-service` and route it through `api-gateway-service` to see live data.</small>
+              </div>
+            </section>
+          ) : null}
+          <JsonViewer value={rawJson} badgeLabel={isLive ? 'Live payload' : 'Fallback debug'} />
         </>
       ) : null}
     </div>

@@ -46,3 +46,11 @@ app:
     topics:
       transaction-completed: transaction.completed
       transaction-completed-dlt: transaction.completed.DLT
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
