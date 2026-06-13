@@ -744,10 +744,44 @@ input:focus {
   margin-bottom: 6px;
 }
 
+.error-alert__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
 .note-banner {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+}
+
+.gateway-status-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.gateway-status-card span,
+.gateway-status-card small {
+  color: var(--text-muted);
+}
+
+.gateway-status-card span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gateway-status-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
 }
 
 .note-banner small {

@@ -10,7 +10,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { demoTransfer } from '../data/demoData';
 import type { TransferRequest, TransferResponse } from '../types/transfer';
 import { useAppState } from '../utils/appState';
-import { formatCurrency, getErrorMessage } from '../utils/format';
+import { formatCurrency, toDebugValue } from '../utils/format';
 import { generateIdempotencyKey } from '../utils/idempotency';
 
 const initialTransferForm: TransferRequest = {
@@ -29,7 +29,7 @@ export function TransferPage() {
   const [transferResult, setTransferResult] = useState<TransferResponse | null>(null);
   const [rawJson, setRawJson] = useState<unknown>({ note: 'Transfer responses and errors will appear here.' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
 
   async function submitTransfer(request: TransferRequest, key: string) {
     setLoading(true);
@@ -43,8 +43,8 @@ export function TransferPage() {
       setLastSubmittedKey(key);
       setRawJson(response);
     } catch (requestError) {
-      setError(getErrorMessage(requestError));
-      setRawJson(requestError);
+      setError(requestError);
+      setRawJson(toDebugValue(requestError));
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export function TransferPage() {
         actions={<StatusBadge status="Idempotency lab" tone="info" subtle />}
       />
 
-      {error ? <ErrorAlert message={error} /> : null}
+      {error ? <ErrorAlert error={error} /> : null}
       {loading ? <LoadingState label="Submitting transfer request..." /> : null}
 
       <FormSection

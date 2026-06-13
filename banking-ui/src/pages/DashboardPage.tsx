@@ -9,6 +9,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../api/apiConfig';
 import { checkServiceStatus } from '../api/httpClient';
 import { ActionCard } from '../components/ActionCard';
 import { JsonViewer } from '../components/JsonViewer';
@@ -34,8 +35,17 @@ export function DashboardPage() {
     async function loadStatus() {
       setLoading(true);
       const result = await Promise.all([
-        checkServiceStatus('core', 'Core Service'),
-        checkServiceStatus('notification', 'Notification Service'),
+        checkServiceStatus('/actuator/health', 'Gateway', 'Gateway health endpoint responded successfully.'),
+        checkServiceStatus(
+          '/api/v1/accounts?page=0&size=1',
+          'Core route',
+          'Gateway routed the account API successfully.',
+        ),
+        checkServiceStatus(
+          '/api/v1/notification-service/health',
+          'Notification route',
+          'Gateway routed the notification health API successfully.',
+        ),
       ]);
 
       if (mounted) {
@@ -53,6 +63,9 @@ export function DashboardPage() {
 
   const portfolioBalance = demoAccounts.reduce((sum, account) => sum + Number(account.balance), 0);
   const transferSummary = lastTransfer ?? demoTransfer;
+  const gatewayStatus = statuses.find((status) => status.name === 'Gateway');
+  const coreRouteStatus = statuses.find((status) => status.name === 'Core route');
+  const notificationRouteStatus = statuses.find((status) => status.name === 'Notification route');
 
   return (
     <div className="page-grid">
@@ -95,7 +108,7 @@ export function DashboardPage() {
               }
               meta={status.detail}
               icon={<Activity size={18} />}
-              badge="Live"
+              badge={status.name === 'Gateway' ? 'Gateway' : 'Live'}
             />
           ))}
           <StatCard
@@ -151,6 +164,48 @@ export function DashboardPage() {
 
         <div className="action-grid">
           <ActionCard
+            title="Gateway status"
+            description={`Frontend base URL: ${API_BASE_URL}`}
+            icon={<Activity size={18} />}
+            meta={
+              <StatusBadge
+                status={
+                  gatewayStatus?.state === 'healthy'
+                    ? 'Gateway healthy'
+                    : gatewayStatus?.state === 'reachable'
+                      ? 'Gateway reachable'
+                      : 'Static demo fallback'
+                }
+                tone={
+                  gatewayStatus?.state === 'healthy'
+                    ? 'success'
+                    : gatewayStatus?.state === 'reachable'
+                      ? 'warning'
+                      : 'info'
+                }
+                subtle
+              />
+            }
+            action={
+              <div className="gateway-status-card">
+                <div>
+                  <span>Gateway URL</span>
+                  <strong>{API_BASE_URL}</strong>
+                </div>
+                <div>
+                  <span>Core route</span>
+                  <strong>{coreRouteStatus?.state ?? 'Unknown'}</strong>
+                  <small>{coreRouteStatus?.detail ?? 'Static demo fallback if probe is unavailable.'}</small>
+                </div>
+                <div>
+                  <span>Notification route</span>
+                  <strong>{notificationRouteStatus?.state ?? 'Unknown'}</strong>
+                  <small>{notificationRouteStatus?.detail ?? 'Static demo fallback if probe is unavailable.'}</small>
+                </div>
+              </div>
+            }
+          />
+          <ActionCard
             title="Create a test account"
             description="Seed fresh balances for transfer and statement experiments."
             icon={<Building2 size={18} />}
@@ -170,6 +225,7 @@ export function DashboardPage() {
       <JsonViewer
         title="Dashboard raw state"
         value={{
+          gatewayUrl: API_BASE_URL,
           services: statuses,
           lastTransfer,
           demoAccounts,

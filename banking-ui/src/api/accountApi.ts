@@ -3,7 +3,7 @@ import type { ApiResponse } from '../types/common';
 import { requestJson } from './httpClient';
 
 export function createAccount(request: CreateAccountRequest) {
-  return requestJson<ApiResponse<AccountResponse>>('core', '/api/v1/accounts', {
+  return requestJson<ApiResponse<AccountResponse>>('/api/v1/accounts', {
     method: 'POST',
     body: JSON.stringify({
       ...request,
@@ -14,7 +14,6 @@ export function createAccount(request: CreateAccountRequest) {
 
 export function getAccount(accountNo: string) {
   return requestJson<ApiResponse<AccountResponse>>(
-    'core',
     `/api/v1/accounts/${encodeURIComponent(accountNo)}`,
   );
 }

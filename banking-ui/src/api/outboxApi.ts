@@ -1,12 +1,9 @@
-import type { UnsupportedApiResult } from '../types/common';
+import type { ApiResponse, CorePageResponse } from '../types/common';
+import type { OutboxEvent } from '../types/outbox';
+import { requestJson } from './httpClient';
 
-export async function getOutboxEvents(): Promise<UnsupportedApiResult> {
-  return {
-    supported: false,
-    resource: 'Outbox events',
-    service: 'banking-core-service',
-    reason:
-      'The repo contains outbox entities and a publisher job, but no checked-in HTTP controller exposes outbox event rows.',
-    suggestedEndpoint: 'GET /api/v1/outbox-events',
-  };
+export function getOutboxEvents(page = 0, size = 20) {
+  return requestJson<ApiResponse<CorePageResponse<OutboxEvent>>>(
+    `/api/v1/outbox-events?page=${page}&size=${size}`,
+  );
 }

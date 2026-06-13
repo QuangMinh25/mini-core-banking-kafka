@@ -16,8 +16,5 @@ export function getStatement(query: StatementQuery) {
     searchParams.set('toDate', query.toDate);
   }
 
-  return requestJson<ApiResponse<StatementResponse>>(
-    'core',
-    `/api/v1/accounts/${encodeURIComponent(query.accountNo)}/statement?${searchParams.toString()}`,
-  );
+  return requestJson<ApiResponse<StatementResponse>>(`/api/v1/accounts/${encodeURIComponent(query.accountNo)}/statement?${searchParams.toString()}`);
 }

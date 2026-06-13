@@ -1,3 +1,5 @@
+import { HttpError } from '../api/httpClient';
+
 export function formatCurrency(value: number | string | null | undefined, currency = 'VND') {
   if (value === null || value === undefined || value === '') {
     return '-';
@@ -31,10 +33,42 @@ export function formatDateTime(value: string | null | undefined) {
   }).format(date);
 }
 
-export function getErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
+export function getErrorDetails(error: unknown) {
+  if (error instanceof HttpError) {
+    return {
+      message: error.message,
+      code: error.code,
+      correlationId: error.correlationId,
+    };
   }
 
-  return 'Unknown error';
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+    };
+  }
+
+  return {
+    message: 'Unknown error',
+  };
+}
+
+export function getErrorMessage(error: unknown) {
+  return getErrorDetails(error).message;
+}
+
+export function toDebugValue(value: unknown) {
+  if (value instanceof HttpError) {
+    return value.toJSON();
+  }
+
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+    };
+  }
+
+  return value;
 }
