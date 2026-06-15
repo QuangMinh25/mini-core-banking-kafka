@@ -16,6 +16,7 @@ spring:
               - OPTIONS
             allowedHeaders:
               - '*'
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -28,11 +29,29 @@ springdoc:
         url: /v3/api-docs/core
       - name: Notification Service
         url: /v3/api-docs/notification
+
 app:
   gateway:
     routes:
       banking-core-uri: http://localhost:8081
       notification-service-uri: http://localhost:8082
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowType: COUNT_BASED
+        registerHealthIndicator: true
+    instances:
+      banking-core-service-cb:
+        baseConfig: default
+      notification-service-cb:
+        baseConfig: default
 
 server:
   port: 8080
@@ -44,4 +63,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,circuitbreakers

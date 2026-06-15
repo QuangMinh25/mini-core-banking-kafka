@@ -1,18 +1,19 @@
 package com.minh.gateway.web;
-import com.minh.gateway.filter.CorrelationLoggingFilter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class GatewayErrorWebExceptionHandlerTests {
 
 	@Test
 	void returnsJsonForUnexpectedGatewayErrors() {
 		GatewayErrorWebExceptionHandler handler = new GatewayErrorWebExceptionHandler();
-		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/api/v1/accounts").build());
-		exchange.getAttributes().put(CorrelationLoggingFilter.CORRELATION_ID_ATTRIBUTE, "error-correlation-id");
+		MockServerWebExchange exchange = MockServerWebExchange.from(
+				MockServerHttpRequest.get("/api/v1/accounts").build());
+		exchange.getAttributes().put("gatewayCorrelationId", "error-correlation-id");
 
 		handler.handle(exchange, new RuntimeException("boom")).block();
 
@@ -23,6 +24,8 @@ class GatewayErrorWebExceptionHandlerTests {
 				.contains("\"success\":false")
 				.contains("\"code\":\"GATEWAY_ERROR\"")
 				.contains("\"message\":\"Gateway request failed\"")
-				.contains("\"correlationId\":\"error-correlation-id\"");
+				.contains("\"correlationId\":\"error-correlation-id\"")
+				.doesNotContain("\"service\"");
 	}
+
 }

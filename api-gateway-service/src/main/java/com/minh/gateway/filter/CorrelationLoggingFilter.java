@@ -1,5 +1,7 @@
 package com.minh.gateway.filter;
 
+import java.util.Map;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -8,18 +10,19 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 @Component
 public class CorrelationLoggingFilter implements GlobalFilter, Ordered {
 
 	public static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
+
 	public static final String CORRELATION_ID_ATTRIBUTE = "gatewayCorrelationId";
+
 	private static final Logger log = LoggerFactory.getLogger(CorrelationLoggingFilter.class);
 
 	@Override
@@ -27,12 +30,12 @@ public class CorrelationLoggingFilter implements GlobalFilter, Ordered {
 		String correlationId = resolveCorrelationId(exchange);
 		long startTime = System.currentTimeMillis();
 
-		ServerHttpRequest request = exchange.getRequest()
+		ServerHttpRequest mutatedRequest = exchange.getRequest()
 				.mutate()
 				.headers(headers -> headers.set(CORRELATION_ID_HEADER, correlationId))
 				.build();
 
-		ServerWebExchange mutatedExchange = exchange.mutate().request(request).build();
+		ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
 		mutatedExchange.getAttributes().put(CORRELATION_ID_ATTRIBUTE, correlationId);
 		mutatedExchange.getResponse().beforeCommit(() -> {
 			mutatedExchange.getResponse().getHeaders().set(CORRELATION_ID_HEADER, correlationId);
@@ -45,7 +48,7 @@ public class CorrelationLoggingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Ordered.HIGHEST_PRECEDENCE;
+		return Integer.MIN_VALUE;
 	}
 
 	public static String getCorrelationId(ServerWebExchange exchange) {
@@ -57,11 +60,11 @@ public class CorrelationLoggingFilter implements GlobalFilter, Ordered {
 	}
 
 	private static String resolveCorrelationId(ServerWebExchange exchange) {
-		String correlationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
-		if (correlationId == null || correlationId.isBlank()) {
+		String providedCorrelationId = exchange.getRequest().getHeaders().getFirst(CORRELATION_ID_HEADER);
+		if (providedCorrelationId == null || providedCorrelationId.isBlank()) {
 			return UUID.randomUUID().toString();
 		}
-		return correlationId;
+		return providedCorrelationId;
 	}
 
 	private void logRequest(ServerWebExchange exchange, String correlationId, long startTime) {
@@ -69,21 +72,25 @@ public class CorrelationLoggingFilter implements GlobalFilter, Ordered {
 		HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 		long durationMs = System.currentTimeMillis() - startTime;
 		String targetRoute = route == null ? "-" : route.getId() + " -> " + route.getUri();
+		Object statusValue = statusCode == null ? "UNKNOWN" : statusCode.value();
+
 		String message = "Gateway request correlationId={} method={} path={} targetRoute={} status={} durationMs={}";
-		Object[] arguments = {
+		Object[] arguments = new Object[] {
 				correlationId,
 				exchange.getRequest().getMethod(),
 				exchange.getRequest().getPath().value(),
 				targetRoute,
-				statusCode == null ? "UNKNOWN" : statusCode.value(),
+				statusValue,
 				durationMs
 		};
 
-		if (exchange.getRequest().getPath().value().startsWith("/actuator")) {
+		RequestPath requestPath = exchange.getRequest().getPath();
+		if (requestPath.value().startsWith("/actuator")) {
 			log.debug(message, arguments);
 			return;
 		}
 
 		log.info(message, arguments);
 	}
+
 }

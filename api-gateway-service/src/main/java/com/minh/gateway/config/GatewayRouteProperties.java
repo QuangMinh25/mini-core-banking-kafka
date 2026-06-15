@@ -5,8 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.gateway.routes")
 public class GatewayRouteProperties {
 
-	private String bankingCoreUri = "http://localhost:8081";
-	private String notificationServiceUri = "http://localhost:8082";
+	private String bankingCoreUri;
+
+	private String notificationServiceUri;
 
 	public String getBankingCoreUri() {
 		return bankingCoreUri;
@@ -23,4 +24,5 @@ public class GatewayRouteProperties {
 	public void setNotificationServiceUri(String notificationServiceUri) {
 		this.notificationServiceUri = notificationServiceUri;
 	}
+
 }

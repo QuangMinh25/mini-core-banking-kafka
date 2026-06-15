@@ -8,10 +8,10 @@ public record GatewayErrorResponse(
 		String code,
 		String message,
 		String correlationId,
-		String service
-) {
+		String service) {
 
 	public GatewayErrorResponse(boolean success, String code, String message, String correlationId) {
 		this(success, code, message, correlationId, null);
 	}
+
 }
