@@ -8,6 +8,7 @@ import com.minh.notification.notification.domain.NotificationLogEntity;
 import com.minh.notification.notification.domain.NotificationStatus;
 import com.minh.notification.notification.infrastructure.NotificationLogRepository;
 import java.time.LocalDateTime;
+import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -61,10 +62,12 @@ public class NotificationService {
 
 	private Specification<NotificationLogEntity> notificationSpecification(String status, String referenceNo,
 			String eventId) {
-		return Specification.allOf(
+		return Stream.of(
 				hasStatus(status),
 				hasReferenceNo(referenceNo),
-				hasEventId(eventId));
+				hasEventId(eventId))
+				.filter(java.util.Objects::nonNull)
+				.reduce((root, query, criteriaBuilder) -> criteriaBuilder.conjunction(), Specification::and);
 	}
 
 	private Specification<NotificationLogEntity> hasStatus(String status) {

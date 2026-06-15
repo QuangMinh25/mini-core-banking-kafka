@@ -65,6 +65,23 @@ class NotificationControllerTest {
 	}
 
 	@Test
+	void shouldReturnPaginatedNotificationsWhenFiltersAreMissing() throws Exception {
+		PageResponse<NotificationResponse> pageResponse = new PageResponse<>(List.of(), 0, 20, 0, 0);
+
+		when(notificationService.getNotifications(eq(0), eq(20), eq(""), eq(""), eq("")))
+				.thenReturn(pageResponse);
+
+		mockMvc.perform(get("/api/v1/notifications")
+						.param("page", "0")
+						.param("size", "20"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.data.content").isArray())
+				.andExpect(jsonPath("$.data.page").value(0))
+				.andExpect(jsonPath("$.data.size").value(20));
+	}
+
+	@Test
 	void shouldReturnNotificationByEventId() throws Exception {
 		NotificationResponse response = new NotificationResponse(
 				"evt-001",

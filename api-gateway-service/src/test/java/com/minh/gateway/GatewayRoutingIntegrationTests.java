@@ -12,6 +12,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -86,6 +88,27 @@ class GatewayRoutingIntegrationTests {
 	}
 
 	@Test
+	void allowsCorsPreflightFromBankingUiForActuatorAndApiRoutes() {
+		preflight("/actuator/health")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectHeader()
+				.valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173")
+				.expectHeader()
+				.value(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, value -> assertThat(value).contains("GET"));
+
+		preflight("/api/v1/accounts")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectHeader()
+				.valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173")
+				.expectHeader()
+				.value(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, value -> assertThat(value).contains("GET"));
+	}
+
+	@Test
 	void exposesGatewayOpenApiJson() {
 		request("/v3/api-docs")
 				.exchange()
@@ -147,6 +170,16 @@ class GatewayRoutingIntegrationTests {
 				.build()
 				.get()
 				.uri(path);
+	}
+
+	private WebTestClient.RequestHeadersSpec<?> preflight(String path) {
+		return WebTestClient.bindToServer()
+				.baseUrl("http://localhost:" + port)
+				.build()
+				.method(HttpMethod.OPTIONS)
+				.uri(path)
+				.header(HttpHeaders.ORIGIN, "http://localhost:5173")
+				.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET");
 	}
 
 	private static synchronized void ensureDownstreamServerStarted() throws IOException {
