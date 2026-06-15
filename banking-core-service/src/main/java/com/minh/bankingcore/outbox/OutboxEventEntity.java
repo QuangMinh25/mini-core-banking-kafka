@@ -9,9 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.Getter;
 
 import java.time.OffsetDateTime;
 
+@Getter
 @Entity
 @Table(name = "outbox_events")
 public class OutboxEventEntity {
@@ -74,50 +76,6 @@ public class OutboxEventEntity {
 	@PrePersist
 	void onCreate() {
 		this.createdAt = OffsetDateTime.now();
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getEventId() {
-		return eventId;
-	}
-
-	public String getTopic() {
-		return topic;
-	}
-
-	public String getEventType() {
-		return eventType;
-	}
-
-	public String getAggregateKey() {
-		return aggregateKey;
-	}
-
-	public String getPayload() {
-		return payload;
-	}
-
-	public OutboxEventStatus getStatus() {
-		return status;
-	}
-
-	public int getRetryCount() {
-		return retryCount;
-	}
-
-	public String getLastError() {
-		return lastError;
-	}
-
-	public OffsetDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public OffsetDateTime getPublishedAt() {
-		return publishedAt;
 	}
 
 	public void markPublished(OffsetDateTime publishedAt) {
