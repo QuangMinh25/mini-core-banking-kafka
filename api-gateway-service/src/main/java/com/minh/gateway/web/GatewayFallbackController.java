@@ -1,6 +1,7 @@
 package com.minh.gateway.web;
 
 import com.minh.gateway.filter.CorrelationLoggingFilter;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -12,6 +13,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 @RestController
 @RequestMapping("/internal/fallback/service-unavailable")
+@Hidden
 @Tag(name = "Gateway Operations", description = "Gateway-owned endpoints")
 public class GatewayFallbackController {
 

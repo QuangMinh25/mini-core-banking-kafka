@@ -120,6 +120,9 @@ class GatewayRoutingIntegrationTests {
 				.value(body -> {
 					assertThat(body).contains("\"title\":\"Mini Core Banking - API Gateway\"");
 					assertThat(body).contains("\"version\":\"v1\"");
+					assertThat(body).contains("\"/api/v1/accounts\"");
+					assertThat(body).contains("\"/api/v1/notifications\"");
+					assertThat(body).doesNotContain("/internal/fallback/service-unavailable");
 				});
 	}
 
@@ -198,7 +201,9 @@ class GatewayRoutingIntegrationTests {
 		String path = exchange.getRequestURI().getPath();
 		String body;
 		if ("/v3/api-docs".equals(path)) {
-			body = "{\"openapi\":\"3.0.1\",\"info\":{\"title\":\"Downstream Test API\"}}";
+			body = """
+					{"openapi":"3.0.1","info":{"title":"Downstream Test API"},"paths":{"/api/v1/accounts":{"get":{"tags":["Accounts"],"responses":{"200":{"description":"OK"}}}},"/api/v1/notifications":{"get":{"tags":["Notifications"],"responses":{"200":{"description":"OK"}}}}}}
+					""";
 		}
 		else {
 			body = "{\"path\":\"" + path + "\",\"correlationId\":\"" + correlationId + "\"}";
